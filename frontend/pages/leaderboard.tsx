@@ -9,19 +9,22 @@ type Influencer = {
 
 export default function Leaderboard() {
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     async function fetchLeaderboard() {
       let { data, error } = await supabase
         .from("influencers")
         .select("id, name, reputation_score")
-        .order("reputation_score", { ascending: false });
+        .order("reputation_score", { ascending: false })
+        .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
-      if (!error) setInfluencers(data);
+      if (!error) setInfluencers((prev) => [...prev, ...data]);
     }
 
     fetchLeaderboard();
-  }, []);
+  }, [page]);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -34,6 +37,12 @@ export default function Leaderboard() {
           </li>
         ))}
       </ul>
+      <button
+        onClick={() => setPage(page + 1)}
+        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-md w-full"
+      >
+        Load More
+      </button>
     </div>
   );
 }
