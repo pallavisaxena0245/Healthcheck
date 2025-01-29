@@ -1,52 +1,39 @@
-// frontend/pages/leaderboard.tsx
-import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { useEffect, useState } from "react";
 
 type Influencer = {
   id: number;
   name: string;
-  twitter_handle: string;
   reputation_score: number;
 };
 
 export default function Leaderboard() {
-  const [data, setData] = useState<Influencer[]>([]);
+  const [influencers, setInfluencers] = useState<Influencer[]>([]);
 
   useEffect(() => {
     async function fetchLeaderboard() {
       let { data, error } = await supabase
         .from("influencers")
-        .select("*")
-        .order("reputation_score", { ascending: false })
-        .limit(10);
+        .select("id, name, reputation_score")
+        .order("reputation_score", { ascending: false });
 
-      if (!error) setData(data || []);
+      if (!error) setInfluencers(data);
     }
 
     fetchLeaderboard();
   }, []);
 
   return (
-    <div className="p-5">
-      <h1 className="text-3xl font-bold">Leaderboard</h1>
-      <table className="mt-5 w-full border-collapse border border-gray-200">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border p-2">Name</th>
-            <th className="border p-2">Twitter</th>
-            <th className="border p-2">Reputation</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((item) => (
-            <tr key={item.id} className="border">
-              <td className="p-2">{item.name}</td>
-              <td className="p-2">@{item.twitter_handle}</td>
-              <td className="p-2">{item.reputation_score}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-4xl font-bold text-center mb-6">Leaderboard</h1>
+      <ul className="bg-white shadow-md rounded-lg overflow-hidden">
+        {influencers.map((inf, index) => (
+          <li key={inf.id} className="border-b p-4 flex justify-between items-center hover:bg-gray-100">
+            <span className="font-semibold">{index + 1}. {inf.name}</span>
+            <span className="text-blue-600 font-bold">Score: {inf.reputation_score}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

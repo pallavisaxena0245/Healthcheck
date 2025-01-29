@@ -1,10 +1,10 @@
-// frontend/pages/search.tsx
-import { useState } from "react";
 import { supabase } from "../lib/supabase";
+import { useState } from "react";
 
 type Influencer = {
   id: number;
   name: string;
+  reputation_score: number;
   journals_quoted: string;
 };
 
@@ -12,32 +12,36 @@ export default function Search() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Influencer[]>([]);
 
-  const handleSearch = async () => {
+  async function handleSearch() {
     let { data, error } = await supabase
       .from("influencers")
-      .select("id, name, journals_quoted")
-      .ilike("journals_quoted", `%${query}%`);
+      .select("*")
+      .or(`name.ilike.%${query}%, journals_quoted.ilike.%${query}%`);
 
-    if (!error) setResults(data || []);
-  };
+    if (!error) setResults(data);
+  }
 
   return (
-    <div className="p-5">
-      <h1 className="text-3xl font-bold">Search Influencers</h1>
-      <input
-        type="text"
-        className="border p-2 w-full mt-3"
-        placeholder="Search by journal..."
-        onChange={(e) => setQuery(e.target.value)}
-      />
-      <button className="mt-3 bg-blue-500 text-white px-4 py-2" onClick={handleSearch}>
-        Search
-      </button>
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-4xl font-bold text-center mb-6">Search Influencers</h1>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          placeholder="Search by name or journals..."
+          className="border p-3 rounded-md w-full"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <button onClick={handleSearch} className="bg-blue-500 text-white px-4 py-3 rounded-md">
+          Search
+        </button>
+      </div>
 
-      <ul className="mt-5">
-        {results.map((item) => (
-          <li key={item.id} className="border p-2">
-            {item.name} - {item.journals_quoted}
+      <ul className="mt-5 bg-white shadow-md rounded-lg overflow-hidden">
+        {results.map((inf) => (
+          <li key={inf.id} className="border-b p-4 flex justify-between hover:bg-gray-100">
+            <a href={`/influencer/${inf.id}`} className="font-bold text-blue-600">{inf.name}</a>
+            <span className="text-gray-700">Score: {inf.reputation_score}</span>
           </li>
         ))}
       </ul>
